@@ -13,5 +13,6 @@ Requires Python 3.6 to 3.8.
 * Clone the latest [AgentOS](https://github.com/agentos-project/agentos) master
 * `pip install -e [path/to/agentos/clone/]`
 * `pip install -r requirements.txt`
-* Run the demo script: `python demo.py`
+* Run the demo script (ported from acme-test repo): `python demo.py`
+* Run basic tests of the policy: `python test.py`
 
