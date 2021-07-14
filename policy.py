@@ -41,18 +41,8 @@ class BasicRNN(networks.RNNCore):
 
 
 class R2D2Policy(agentos.Policy):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, environment_spec, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # TODO - this is cheating, this needs to be pushed into AOS proper
-        environment = gym.make("CartPole-v1")
-        environment = wrappers.GymWrapper(environment)  # To dm_env interface.
-        self.environment = wrappers.SinglePrecisionWrapper(environment)
-        environment_spec = specs.make_environment_spec(self.environment)
-        num_dimensions = np.prod(
-                environment_spec.actions.shape, dtype=int
-        )
-
 
         # Create the R2D2 agent.
         agent_logger = loggers.TerminalLogger(label="agent", time_delta=10.0)
@@ -73,12 +63,13 @@ class R2D2Policy(agentos.Policy):
                 label="env_loop",
                 time_delta=10.0
         )
-        self.env_loop = environment_loop.EnvironmentLoop(
-                self.environment,
-                self.agent,
-                logger=env_loop_logger,
-                should_update=True
-        )
+
+        #self.env_loop = environment_loop.EnvironmentLoop(
+        #        self.environment,
+        #        self.agent,
+        #        logger=env_loop_logger,
+        #        should_update=True
+        #)
 
     def decide(self, observation, actions):
         # TODO - eliding complexities of agent observing and then acting
@@ -96,4 +87,4 @@ class R2D2Policy(agentos.Policy):
         # TODO - this doesn't actually save the model and continually improve
         # it :(
         print('Improving policy **TODO**')
-        self.env_loop.run_episode()
+        #self.env_loop.run_episode()

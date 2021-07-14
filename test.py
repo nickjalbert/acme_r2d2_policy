@@ -3,9 +3,28 @@
 
 from policy import R2D2Policy
 import numpy as np
+from dm_env import specs
+from collections import namedtuple
 
 
-policy = R2D2Policy()
+# TODO - Maybe this goes into AOS?
+# TODO - copied directly from cartpole
+# https://github.com/deepmind/acme/blob/master/acme/specs.py
+EnvironmentSpec = namedtuple(
+        'EnvironmentSpec', ['observations', 'actions', 'rewards', 'discounts']
+)
+
+spec = EnvironmentSpec(
+        observations=specs.Array(
+            shape=(4,),
+            dtype=np.float32
+        ),
+        actions=specs.DiscreteArray(num_values=2),
+        rewards=specs.DiscreteArray(num_values=2),
+        discounts=specs.DiscreteArray(num_values=2)
+)
+
+policy = R2D2Policy(spec)
 
 print()
 print('Calling policy.improve()')
