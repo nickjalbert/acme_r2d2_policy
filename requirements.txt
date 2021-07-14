@@ -1,5 +1,4 @@
 absl-py==0.13.0
--e git+git@github.com:nickjalbert/agentos.git@a9dcdde74ddcde7ed344300fc165c2720de024ad#egg=agentos
 alembic==1.6.5
 appdirs==1.4.3
 astunparse==1.6.3
