@@ -6,6 +6,8 @@ from acme.agents.tf import d4pg
 from acme.tf import networks
 from acme.tf import utils as tf2_utils
 from acme.utils import loggers
+from dm_env import TimeStep
+from dm_env import StepType
 import numpy as np
 import sonnet as snt
 import gym
@@ -44,11 +46,18 @@ class R2D2Policy(agentos.Policy):
     def __init__(self, environment_spec, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        if 'network' in agentos.saved_data:
+            print('R2D2Policy: Loading saved network')
+            self.network = agentos.saved_data['network']
+        else:
+            print('R2D2Policy: Creating new network')
+            self.network = BasicRNN(environment_spec.actions)
+
         # Create the R2D2 agent.
         agent_logger = loggers.TerminalLogger(label="agent", time_delta=10.0)
         self.agent = r2d2.R2D2(
                 environment_spec=environment_spec,
-                network=BasicRNN(environment_spec.actions),
+                network=self.network,
                 burn_in_length=2,
                 trace_length=10,
                 replay_period=40,
@@ -59,21 +68,29 @@ class R2D2Policy(agentos.Policy):
                 checkpoint=False,
         )
 
-        env_loop_logger = loggers.TerminalLogger(
-                label="env_loop",
-                time_delta=10.0
-        )
+    def observe(self, action, observation, reward, done, info):
+        # TODO - Where does discount go?  move to configuration params?
+        # Acme expects it to be a part of the environment which
+        # (overly) couples environment and agent
+        DISCOUNT = np.float32(.99)
+        if action is None:  # No action -> first step
+            timestep = TimeStep(StepType.FIRST, None, None, observation)
+            self.agent.observe_first(timestep)
+        else:
+            if done:
+                timestep = TimeStep(
+                        StepType.LAST, reward, DISCOUNT, observation
+                )
+            else:
+                timestep = TimeStep(
+                        StepType.MID, reward, DISCOUNT, observation
+                )
 
-        #self.env_loop = environment_loop.EnvironmentLoop(
-        #        self.environment,
-        #        self.agent,
-        #        logger=env_loop_logger,
-        #        should_update=True
-        #)
+            self.agent.observe(action, next_timestep=timestep)
 
-    def decide(self, observation, actions):
+    def decide(self, observation, actions, should_learn=False):
         # TODO - eliding complexities of agent observing and then acting
-        # see https://github.com/deepmind/acme/blob/master/acme/environment_loop.py#L92
+        # https://github.com/deepmind/acme/blob/master/acme/environment_loop.py
 
         # TODO - ugly typing
         if type(observation) != type(np.array):
@@ -84,7 +101,7 @@ class R2D2Policy(agentos.Policy):
         return self.agent.select_action(observation)
 
     def improve(self, **kwargs):
-        # TODO - this doesn't actually save the model and continually improve
-        # it :(
-        print('Improving policy **TODO**')
-        #self.env_loop.run_episode()
+        print('R2D2Policy: Updating policy')
+        self.agent.update()
+        print('R2D2Policy: Saving network')
+        agentos.save_data('network', self.network)
