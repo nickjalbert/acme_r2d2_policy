@@ -15,6 +15,7 @@ import pyvirtualdisplay
 import imageio
 import base64
 import agentos
+import tensorflow as tf
 
 
 # BasicRNN, taken from r2d2 test
@@ -46,12 +47,9 @@ class R2D2Policy(agentos.Policy):
     def __init__(self, environment_spec, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if 'network' in agentos.saved_data:
-            print('R2D2Policy: Loading saved network')
-            self.network = agentos.saved_data['network']
-        else:
-            print('R2D2Policy: Creating new network')
-            self.network = BasicRNN(environment_spec.actions)
+
+        self.network = BasicRNN(environment_spec.actions)
+        agentos.restore_data('network', self.network)
 
         # Create the R2D2 agent.
         agent_logger = loggers.TerminalLogger(label="agent", time_delta=10.0)
