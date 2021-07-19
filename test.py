@@ -11,10 +11,15 @@ import agentos
 
 
 data_location = Path('.').absolute()
-output_file = data_location / 'network'
+# Checkpoint files
+output_file_1 = data_location / 'checkpoint'
+output_file_2 = data_location / 'network-1.data-00000-of-00001'
+output_file_3 = data_location / 'network-1.index'
 
 try:
-    os.remove(output_file)
+    os.remove(output_file_1)
+    os.remove(output_file_2)
+    os.remove(output_file_3)
 except FileNotFoundError:
     pass
 
@@ -23,6 +28,7 @@ if 'saved_data' not in agentos.__dict__:
     agentos.__dict__['saved_data'] = {}
 
 agentos.__dict__['save_data'].__dict__['data_location'] = data_location
+agentos.__dict__['restore_data'].__dict__['data_location'] = data_location
 
 # TODO - Maybe this goes into AOS?
 # TODO - copied directly from cartpole
@@ -51,10 +57,16 @@ policy = R2D2Policy(spec)
 
 print()
 print('Calling policy.improve()')
-assert not os.path.isfile(output_file)
+assert not os.path.isfile(output_file_1)
+assert not os.path.isfile(output_file_2)
+assert not os.path.isfile(output_file_3)
 policy.improve()
-assert os.path.isfile(output_file)
-os.remove(output_file)
+assert os.path.isfile(output_file_1)
+assert os.path.isfile(output_file_2)
+assert os.path.isfile(output_file_3)
+os.remove(output_file_1)
+os.remove(output_file_2)
+os.remove(output_file_3)
 print()
 
 obs = np.float32(np.array([-0.10803831, -0.39921515,  0.21240302,  0.85913184]))

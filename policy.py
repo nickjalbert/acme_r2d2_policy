@@ -47,7 +47,6 @@ class R2D2Policy(agentos.Policy):
     def __init__(self, environment_spec, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
         self.network = BasicRNN(environment_spec.actions)
         agentos.restore_data('network', self.network)
 
@@ -87,19 +86,13 @@ class R2D2Policy(agentos.Policy):
             self.agent.observe(action, next_timestep=timestep)
 
     def decide(self, observation, actions, should_learn=False):
-        # TODO - eliding complexities of agent observing and then acting
-        # https://github.com/deepmind/acme/blob/master/acme/environment_loop.py
-
         # TODO - ugly typing
         if type(observation) != type(np.array):
             observation = np.array(observation)
         if observation.dtype != np.zeros(1, dtype='float32').dtype:
             observation = np.float32(observation)
-        print('Selecting actions **TODO**')
         return self.agent.select_action(observation)
 
     def improve(self, **kwargs):
-        print('R2D2Policy: Updating policy')
         self.agent.update()
-        print('R2D2Policy: Saving network')
         agentos.save_data('network', self.network)
