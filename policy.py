@@ -48,7 +48,7 @@ class R2D2Policy(agentos.Policy):
         super().__init__(*args, **kwargs)
 
         self.network = BasicRNN(environment_spec.actions)
-        agentos.restore_data('network', self.network)
+        agentos.restore_tensorflow('network', self.network)
 
         # Create the R2D2 agent.
         agent_logger = loggers.TerminalLogger(label="agent", time_delta=10.0)
@@ -95,4 +95,4 @@ class R2D2Policy(agentos.Policy):
 
     def improve(self, **kwargs):
         self.agent.update()
-        agentos.save_data('network', self.network)
+        agentos.save_tensorflow('network', self.network)
