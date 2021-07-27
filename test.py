@@ -23,12 +23,10 @@ try:
 except FileNotFoundError:
     pass
 
-# TODO - setup to simulate AOS runtime env
-if 'saved_data' not in agentos.__dict__:
-    agentos.__dict__['saved_data'] = {}
-
 agentos.__dict__['save_data'].__dict__['data_location'] = data_location
+agentos.__dict__['save_tensorflow'].__dict__['data_location'] = data_location
 agentos.__dict__['restore_data'].__dict__['data_location'] = data_location
+agentos.__dict__['restore_tensorflow'].__dict__['data_location'] = data_location
 
 # TODO - Maybe this goes into AOS?
 # TODO - copied directly from cartpole
