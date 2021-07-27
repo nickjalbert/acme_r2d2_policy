@@ -143,7 +143,7 @@ class R2D2Policy(agentos.Policy):
             max_priority_weight=MAX_PRIORITY_WEIGHT,
         )
 
-        self. = tf2_savers.Checkpointer(
+        self.checkpointer = tf2_savers.Checkpointer(
             subdirectory='r2d2_learner',
             time_delta_minutes=60,
             objects_to_save=self.learner.state,
