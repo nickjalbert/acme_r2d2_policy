@@ -187,7 +187,7 @@ class R2D2Policy(agentos.Policy):
 
     def decide(self, observation, actions, should_learn=False):
         # TODO - ugly typing
-        if isinstance(observation, np.array):
+        if not isinstance(observation, type(np.array)):
             observation = np.array(observation)
         if observation.dtype != np.zeros(1, dtype="float32").dtype:
             observation = np.float32(observation)
@@ -206,7 +206,7 @@ class R2D2Policy(agentos.Policy):
         if n < 0:
             # Do not do any learner steps until you have seen min_observations.
             num_steps = 0
-        if self.observations_per_step > 1:
+        elif self.observations_per_step > 1:
             # One batch every 1/obs_per_step observations, otherwise zero.
             num_steps = int(n % int(self.observations_per_step) == 0)
         else:
