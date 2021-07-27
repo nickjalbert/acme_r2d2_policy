@@ -16,3 +16,10 @@ Requires Python 3.6 to 3.8.
 * Run the demo script (ported from acme-test repo): `python demo.py`
 * Run basic tests of the policy: `python test.py`
 
+
+# Formatting and Linting
+
+```
+./scripts/format_code.py
+./scripts/lint_code.py
+```

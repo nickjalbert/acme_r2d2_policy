@@ -18,7 +18,8 @@ from shared import traverse_tracked_files
 returncode = 0
 
 # From root of repo e.g. "agentos/templates/agent.py",
-IGNORED_FILES = []    
+IGNORED_FILES = []
+
 
 def flake_file(path):
     global returncode

@@ -1,10 +1,6 @@
-from acme import environment_loop
 from acme import specs
-from acme import wrappers
 from acme import datasets
-from acme.agents.tf import r2d2
 from acme.agents.tf.r2d2 import learning
-from acme.agents.tf import d4pg
 from acme.agents.tf import actors
 from acme.adders import reverb as adders
 from acme.tf import networks
@@ -18,10 +14,6 @@ import trfl
 import copy
 import numpy as np
 import sonnet as snt
-import gym
-import pyvirtualdisplay
-import imageio
-import base64
 import agentos
 import tensorflow as tf
 
@@ -56,10 +48,10 @@ class R2D2Policy(agentos.Policy):
         super().__init__(*args, **kwargs)
 
         self.network = BasicRNN(environment_spec.actions)
-        agentos.restore_tensorflow('network', self.network)
+        agentos.restore_tensorflow("network", self.network)
         # TODO - Most of this configuration should be in the agent.ini
         self.num_observations = 0
-        self.discount = np.float32(.99)
+        self.discount = np.float32(0.99)
 
         # ======================
         # Create the R2D2 agent.
@@ -86,7 +78,7 @@ class R2D2Policy(agentos.Policy):
 
         initial_state = self.network.initial_state(1)
         extra_spec = {
-            'core_state': tf2_utils.squeeze_batch_dim(initial_state),
+            "core_state": tf2_utils.squeeze_batch_dim(initial_state),
         }
         sequence_length = BURN_IN_LENGTH + TRACE_LENGTH + 1
         replay_table = reverb.Table(
@@ -96,12 +88,13 @@ class R2D2Policy(agentos.Policy):
             max_size=MAX_REPLAY_SIZE,
             rate_limiter=reverb.rate_limiters.MinSize(min_size_to_sample=1),
             signature=adders.SequenceAdder.signature(
-                environment_spec, extra_spec, sequence_length=sequence_length))
+                environment_spec, extra_spec, sequence_length=sequence_length
+            ),
+        )
 
         # NB - must save ref to server or it gets killed
         self.reverb_server = reverb.Server([replay_table], port=None)
-        address = f'localhost:{self.reverb_server.port}'
-
+        address = f"localhost:{self.reverb_server.port}"
 
         # Component to add things into replay.
         adder = adders.SequenceAdder(
@@ -114,14 +107,15 @@ class R2D2Policy(agentos.Policy):
         dataset = datasets.make_reverb_dataset(
             server_address=address,
             batch_size=BATCH_SIZE,
-            prefetch_size=PREFETCH_SIZE)
+            prefetch_size=PREFETCH_SIZE,
+        )
 
         target_network = copy.deepcopy(self.network)
         tf2_utils.create_variables(
-                self.network, [environment_spec.observations]
+            self.network, [environment_spec.observations]
         )
         tf2_utils.create_variables(
-                target_network, [environment_spec.observations]
+            target_network, [environment_spec.observations]
         )
 
         self.learner = learning.R2D2Learner(
@@ -144,32 +138,35 @@ class R2D2Policy(agentos.Policy):
         )
 
         self.checkpointer = tf2_savers.Checkpointer(
-            subdirectory='r2d2_learner',
+            subdirectory="r2d2_learner",
             time_delta_minutes=60,
             objects_to_save=self.learner.state,
             enable_checkpointing=CHECKPOINT,
         )
         self.snapshotter = tf2_savers.Snapshotter(
-            objects_to_save={'network': self.network}, time_delta_minutes=60.)
+            objects_to_save={"network": self.network}, time_delta_minutes=60.0
+        )
 
         def epsilon_greedy_fn(qs):
             return trfl.epsilon_greedy(qs, epsilon=EPSILON).sample()
 
-        policy_network = snt.DeepRNN([
-            self.network,
-            epsilon_greedy_fn,
-        ])
+        policy_network = snt.DeepRNN(
+            [
+                self.network,
+                epsilon_greedy_fn,
+            ]
+        )
 
         self.actor = actors.RecurrentActor(
-            policy_network, adder, store_recurrent_state=STORE_LSTM_STATE)
+            policy_network, adder, store_recurrent_state=STORE_LSTM_STATE
+        )
         self.observations_per_step = (
             float(REPLAY_PERIOD * BATCH_SIZE) / SAMPLES_PER_INSERT
         )
 
-        self.min_observations = (
-                REPLAY_PERIOD * max(BATCH_SIZE, MIN_REPLAY_SIZE)
+        self.min_observations = REPLAY_PERIOD * max(
+            BATCH_SIZE, MIN_REPLAY_SIZE
         )
-
 
     def observe(self, action, observation, reward, done, info):
         if action is None:  # No action -> first step
@@ -178,11 +175,11 @@ class R2D2Policy(agentos.Policy):
         else:
             if done:
                 timestep = TimeStep(
-                        StepType.LAST, reward, self.discount, observation
+                    StepType.LAST, reward, self.discount, observation
                 )
             else:
                 timestep = TimeStep(
-                        StepType.MID, reward, self.discount, observation
+                    StepType.MID, reward, self.discount, observation
                 )
 
             self.num_observations += 1
@@ -190,9 +187,9 @@ class R2D2Policy(agentos.Policy):
 
     def decide(self, observation, actions, should_learn=False):
         # TODO - ugly typing
-        if type(observation) != type(np.array):
+        if isinstance(observation, np.array):
             observation = np.array(observation)
-        if observation.dtype != np.zeros(1, dtype='float32').dtype:
+        if observation.dtype != np.zeros(1, dtype="float32").dtype:
             observation = np.float32(observation)
         return self.actor.select_action(observation)
 
@@ -203,7 +200,6 @@ class R2D2Policy(agentos.Policy):
         #   * acme/agents/agent.py
         #   * acme/agents/tf/r2d2/agent.py
         # ======================
-
 
         num_steps = 0
         n = self.num_observations - self.min_observations
@@ -217,16 +213,15 @@ class R2D2Policy(agentos.Policy):
             # Always return 1/obs_per_step batches every observation.
             num_steps = int(1 / self.observations_per_step)
 
-
         for _ in range(num_steps):
-          # Run learner steps (usually means gradient steps).
-          self.learner.step()
+            # Run learner steps (usually means gradient steps).
+            self.learner.step()
         if num_steps > 0:
-          # Update the actor weights when learner updates.
-          self.actor.update()
+            # Update the actor weights when learner updates.
+            self.actor.update()
 
         # TODO - can probably skip builtin snapper/checker
         self.snapshotter.save()
         self.checkpointer.save()
 
-        agentos.save_tensorflow('network', self.network)
+        agentos.save_tensorflow("network", self.network)

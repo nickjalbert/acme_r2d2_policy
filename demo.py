@@ -5,16 +5,11 @@ from acme import environment_loop
 from acme import specs
 from acme import wrappers
 from acme.agents.tf import r2d2
-from acme.agents.tf import d4pg
 from acme.tf import networks
-from acme.tf import utils as tf2_utils
 from acme.utils import loggers
 import numpy as np
 import sonnet as snt
 import gym
-import pyvirtualdisplay
-import imageio
-import base64
 
 # Set up a virtual display for rendering.
 # display = pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
@@ -82,6 +77,7 @@ while True:
     trials = [env_loop.run_episode() for i in range(trial_count)]
     total_steps = sum([t["episode_length"] for t in trials])
     print(
-        f'{total_steps/len(trials):.2f} after {trials[-1]["episodes"]} episodes'
+        f"{total_steps/len(trials):.2f} after "
+        f'{trials[-1]["episodes"]} episodes'
     )
     env_loop.run(num_episodes=learning_run_count)
