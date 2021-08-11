@@ -44,12 +44,12 @@ class R2D2Policy(agentos.Policy):
         network = BasicRNN(environment_spec.actions)
         agentos.restore_tensorflow("network", network)
         self.shared_data["network"] = network
-        self.shared_data["store_lstm_state"] = True
-        EPSILON = 0.01
         tf2_utils.create_variables(network, [environment_spec.observations])
 
         def epsilon_greedy_fn(qs):
-            return trfl.epsilon_greedy(qs, epsilon=EPSILON).sample()
+            return trfl.epsilon_greedy(
+                qs, epsilon=agentos.local_settings.epsilon
+            ).sample()
 
         policy_network = snt.DeepRNN(
             [
@@ -61,7 +61,7 @@ class R2D2Policy(agentos.Policy):
         self.actor = actors.RecurrentActor(
             policy_network,
             ADDER,
-            store_recurrent_state=self.shared_data["store_lstm_state"],
+            store_recurrent_state=agentos.global_settings.store_lstm_state,
         )
 
     def decide(self, observation, actions, should_learn=False):
