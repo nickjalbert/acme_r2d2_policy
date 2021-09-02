@@ -1,8 +1,0 @@
-{
-    "global": {
-        "store_lstm_state": true
-    },
-    "local": {
-        "epsilon": 0.99
-    }
-}

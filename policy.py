@@ -48,7 +48,7 @@ class R2D2Policy(agentos.Policy):
 
         def epsilon_greedy_fn(qs):
             return trfl.epsilon_greedy(
-                qs, epsilon=agentos.local_settings.epsilon
+                qs, epsilon=agentos.parameters.epsilon
             ).sample()
 
         policy_network = snt.DeepRNN(
@@ -61,7 +61,7 @@ class R2D2Policy(agentos.Policy):
         self.actor = actors.RecurrentActor(
             policy_network,
             ADDER,
-            store_recurrent_state=agentos.global_settings.store_lstm_state,
+            store_recurrent_state=agentos.parameters.store_lstm_state,
         )
 
     def decide(self, observation, actions, should_learn=False):
