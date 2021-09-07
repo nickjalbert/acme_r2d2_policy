@@ -1,2 +1,2 @@
 store_lstm_state: true
-epsilon: 0.99
+epsilon: 0.01
