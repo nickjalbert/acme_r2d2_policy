@@ -73,3 +73,11 @@ class R2D2Policy(agentos.Policy):
         action = self.actor.select_action(observation)
         self.shared_data["_prev_state"] = self.actor._prev_state
         return action
+
+
+def run_tests():
+    pass
+
+
+if __name__ == "__main__":
+    run_tests()
